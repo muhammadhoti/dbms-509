@@ -33,31 +33,194 @@ app.get("/dbms", async (req, res) => {
     }
 });
 
-app.get("/dbms/:tableName", async (req, res) => {
-    const tableName = req.params.tableName;
+app.get("/dbms/ORDER_DETAILS", async (req, res) => {
+    const tableName = "ORDER_DETAILS";
     try {
-        sql.connect(dbConfig, (err) => {
-            if (!err) {
-                console.log("CONNECTED");
-                sql.query(`SELECT * FROM ${tableName}`, (err, result, fields) => {
-                    if (!err) {
-                        res.status(200);
-                        res.send(getTable(tableName, result.recordsets[0]));
-                    } else {
-                        res.send(err);
-                    };
-                });
-            } else {
-                console.log("Error while connecting database :- " + err);
-                res.send(err);
-                sql.close();
-            }
-        });
-    } catch (error) {
+        let db = await sql.connect(dbConfig);
+        let response = await db.query(`SELECT ${tableName}.*,ORDERS.TOT_PRICE as TOTAL_PRICE, ${tableName}.ORDER_ID as ORDERR_ID, ${tableName}.PID as PRODUCT_ID, PRODUCTS.NAME as PRODUCT_NAME, PRODUCTS.COST as PRODUCT_COST FROM ${tableName} JOIN ORDERS ON ${tableName}.ORDER_ID = ORDERS.ID JOIN PRODUCTS ON ${tableName}.PID = PRODUCTS.ID`);
+        sql.close();
+        res.status(200);
+        for(let item of response.recordset){
+            delete item.ORDER_ID;
+            delete item.PID;
+            item.TOTAL_PRICE = item.QTY * item.PRODUCT_COST;
+        }
+        res.send(getTable(tableName, response.recordset));
+    } catch (err) {
+        sql.close();
         res.status(500);
         res.send({
             success: false,
-            data: {}
+            data: {err}
+        });
+    }
+});
+
+app.get("/dbms/ORDERS", async (req, res) => {
+    const tableName = "ORDERS";
+    try {
+        let db = await sql.connect(dbConfig);
+        let response = await db.query(`SELECT ${tableName}.*, ${tableName}.CUSTOMER_ID as CUSTOMERR_ID, CUSTOMERS.EMAIL as CUSTOMER_EMAIL, CUSTOMERS.NAME as NAME, ${tableName}.PAYMENT_ID as PAYMENT_METHOD_ID, PAYMENT_METHODS.NAME as PAYMENT_METHOD FROM ${tableName} JOIN CUSTOMERS ON ${tableName}.CUSTOMER_ID = CUSTOMERS.ID JOIN PAYMENT_METHODS ON ${tableName}.PAYMENT_ID = PAYMENT_METHODS.ID`);
+        sql.close();
+        res.status(200);
+        for(let item of response.recordset){
+            delete item.CUSTOMER_ID;
+            delete item.PAYMENT_ID;
+        }
+        res.send(getTable(tableName, response.recordset));
+    } catch (err) {
+        sql.close();
+        res.status(500);
+        res.send({
+            success: false,
+            data: {err}
+        });
+    }
+});
+
+app.get("/dbms/CART_DETAILS", async (req, res) => {
+    const tableName = "CART_DETAILS";
+    try {
+        let db = await sql.connect(dbConfig);
+        let response = await db.query(`SELECT ${tableName}.*, ${tableName}.CARTID as CART_ID, CARTS.EMAIL as CUSTOMER_EMAIL, ${tableName}.PID as PRODUCT_ID, PRODUCTS.NAME as PRODUCT_NAME, PRODUCTS.COST FROM ${tableName} JOIN CARTS ON ${tableName}.CARTID = CARTS.ID JOIN PRODUCTS ON ${tableName}.PID = PRODUCTS.ID`);
+        sql.close();
+        res.status(200);
+        for(let item of response.recordset){
+            delete item.CARTID;
+            delete item.PID;
+        }
+        res.send(getTable(tableName, response.recordset));
+    } catch (err) {
+        sql.close();
+        res.status(500);
+        res.send({
+            success: false,
+            data: {err}
+        });
+    }
+});
+
+app.get("/dbms/CARTS", async (req, res) => {
+    const tableName = "CARTS";
+    try {
+        let db = await sql.connect(dbConfig);
+        let response = await db.query(`SELECT ${tableName}.*, ${tableName}.CUSTOMERID as CUSTOMER_ID, CUSTOMERS.NAME as CUSTOMER_NAME, CUSTOMERS.EMAIL as CUSTOMER_EMAIL FROM ${tableName} JOIN CUSTOMERS ON ${tableName}.CUSTOMERID = CUSTOMERS.ID`);
+        sql.close();
+        res.status(200);
+        for(let item of response.recordset){
+            delete item.CUSTOMERID;
+            delete item.EMAIL;
+        }
+        res.send(getTable(tableName, response.recordset));
+    } catch (err) {
+        sql.close();
+        res.status(500);
+        res.send({
+            success: false,
+            data: {err}
+        });
+    }
+});
+
+app.get("/dbms/PRODUCT_DECORS", async (req, res) => {
+    const tableName = "PRODUCT_DECORS";
+    try {
+        let db = await sql.connect(dbConfig);
+        let response = await db.query(`SELECT ${tableName}.*, ${tableName}.PID as PRODUCT_ID, PRODUCTS.NAME as PRODUCT_NAME FROM ${tableName} JOIN PRODUCTS ON ${tableName}.PID = PRODUCTS.ID`);
+        sql.close();
+        res.status(200);
+        for(let item of response.recordset){
+            delete item.PID;
+        }
+        res.send(getTable(tableName, response.recordset));
+    } catch (err) {
+        sql.close();
+        res.status(500);
+        res.send({
+            success: false,
+            data: {err}
+        });
+    }
+});
+
+app.get("/dbms/PRODUCT_RUGS", async (req, res) => {
+    const tableName = "PRODUCT_RUGS";
+    try {
+        let db = await sql.connect(dbConfig);
+        let response = await db.query(`SELECT ${tableName}.*, ${tableName}.PID as PRODUCT_ID, PRODUCTS.NAME as PRODUCT_NAME FROM ${tableName} JOIN PRODUCTS ON ${tableName}.PID = PRODUCTS.ID`);
+        sql.close();
+        res.status(200);
+        for(let item of response.recordset){
+            delete item.PID;
+        }
+        res.send(getTable(tableName, response.recordset));
+    } catch (err) {
+        sql.close();
+        res.status(500);
+        res.send({
+            success: false,
+            data: {err}
+        });
+    }
+});
+
+app.get("/dbms/PRODUCTS", async (req, res) => {
+    const tableName = "PRODUCTS";
+    try {
+        let db = await sql.connect(dbConfig);
+        let response = await db.query(`SELECT ${tableName}.*, ${tableName}.SUPID as SUPPLIER_ID, SUPPLIERS.NAME as SUPPLIER_NAME, ${tableName}.CATID as CATEGORY_ID, CATEGORIES.NAME as CATEGORY_NAME FROM ${tableName} JOIN CATEGORIES ON ${tableName}.CATID = CATEGORIES.ID JOIN SUPPLIERS ON ${tableName}.SUPID = SUPPLIERS.ID`);
+        sql.close();
+        res.status(200);
+        for(let item of response.recordset){
+            delete item.SUPID;
+            delete item.CATID;
+        }
+        res.send(getTable(tableName, response.recordset));
+    } catch (err) {
+        sql.close();
+        res.status(500);
+        res.send({
+            success: false,
+            data: {err}
+        });
+    }
+});
+
+app.get("/dbms/ADMINS", async (req, res) => {
+    const tableName = "ADMINS";
+    try {
+        let db = await sql.connect(dbConfig);
+        let response = await db.query(`SELECT ${tableName}.*, ${tableName}.ADMIN_TYPE as ADMIN_ROLE_ID , ADMIN_TYPES.NAME as ADMIN_ROLE FROM ${tableName} INNER JOIN ADMIN_TYPES ON ${tableName}.ADMIN_TYPE=ADMIN_TYPES.ID`);
+        sql.close();
+        res.status(200);
+        for(let item of response.recordset){
+            delete item.ADMIN_TYPE;
+        }
+        res.send(getTable(tableName, response.recordset));
+    } catch (err) {
+        sql.close();
+        res.status(500);
+        res.send({
+            success: false,
+            data: {err}
+        });
+    }
+});
+
+app.get("/dbms/:tableName", async (req, res) => {
+    const tableName = req.params.tableName;
+    try {
+        let db = await sql.connect(dbConfig);
+        let response = await db.query(`SELECT * FROM ${tableName}`);
+        sql.close();
+        res.status(200);
+        res.send(getTable(tableName, response.recordset));
+    } catch (err) {
+        sql.close();
+        res.status(500);
+        res.send({
+            success: false,
+            data: {err}
         });
     }
 });
@@ -270,8 +433,6 @@ async function getAllTables(){
         for (let item of tables){
             if(item !== "Home"){
                 let response = await db.query(`SELECT * FROM ${item}`);
-                console.log(response);
-                console.log("after")
                 let data = response.recordset;
                 let cols = Object.keys(data[0]);
                 let header = getHeader(cols,item);
